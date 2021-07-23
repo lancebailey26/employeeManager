@@ -21,7 +21,7 @@ function stepOne(){
         name: "menu",
         type: "list",
         message: "what would you like to do?",
-        choices: ["list all employees", "view employees by department", "update employee", "add new employee", "quit"],
+        choices: ["list all employees", "view employees by department", "update employee", "add new employee", "delete an employee", "view all departments", "add department", "delete department", "quit"],
     })
     .then((results) =>{
         switch (results.menu) {
@@ -37,6 +37,18 @@ function stepOne(){
             case "add new employee":
                 newEmployee();
                 break;
+            case "delete an employee":
+                deleteEmployee();
+                break;
+            case "view all departments":
+                viewDepartments();
+                break;
+            case "add department":
+                addDepartment();
+                break;
+            case "delete department":
+                deleteDepartment();
+                break;
             case "quit":
                 connection.end();
                 console.log("Bye!");
@@ -45,6 +57,61 @@ function stepOne(){
     }
     )
 }
+const viewDepartments = () => {
+    const query = 'SELECT * FROM department';
+    connection.query(query, (err, res) =>{
+     if (res[0]) {console.table(res)} else {console.log(err)} 
+     repeat();
+    });
+    
+}
+
+
+const addDepartment = () => {
+    inquirer
+    .prompt({
+        name: 'name',
+        type: 'input',
+        message: 'new department name: ',
+    })
+    .then((answers) => {
+        connection.query('INSERT INTO department (name) VALUES ("'+answers.name+'")')
+        console.log('new department created');
+        repeat();
+    })
+}
+
+const deleteDepartment = () => {
+    inquirer
+    .prompt({
+        name: 'id',
+        type: 'input',
+        message: 'enter department id: ',
+    })
+    .then((answers) => {
+        connection.query('SELECT * FROM department WHERE id ='+answers.id+'', (err, res) => {
+            if (res) {console.table(res)} else {console.log(err)}
+        })
+        inquirer
+        .prompt({
+            name: "confirm",
+            type: "list",
+            message: "are you sure you want to delete this entry?",
+            choices: ["yes", "go back"]
+        })
+        .then((answer) =>{
+            switch(answer.confirm){
+                case "yes":
+                connection.query('DELETE FROM department WHERE id = '+answers.id+'', (err, res) => {
+                    if (res) {console.log("Department Deleted.")} else {console.log(err)}
+                    repeat();
+                })
+                break;
+                case "go back":
+                    repeat();
+                    break;
+    }})})};
+
 const newEmployee = () => {
     inquirer
     .prompt([{
@@ -105,8 +172,35 @@ const newEmployee = () => {
         //     repeat();
         });
     }
-//     })
-// };
+function deleteEmployee(){
+    inquirer
+    .prompt({
+        name: "id",
+        type: "input",
+        message: "enter employee's ID",
+    })
+    .then((results) =>{
+        const query = 'SELECT * FROM employee JOIN roles ON employee.role_id = roles.id WHERE employee.id='+results.id+'';
+        connection.query(query, (err, res) =>{
+         if (res) {console.table(res)} else {console.log(err)}
+        inquirer
+        .prompt({
+            name: "confirm",
+            type: "list",
+            message: "are you sure you want to delete this entry?",
+            choices: ["yes", "go back"]
+        })
+        .then((answer) =>{
+            switch(answer.confirm){
+                case "yes":
+                connection.query('DELETE FROM employee WHERE id = '+results.id+'', (err, res) => {
+                    if (res) {console.log("Employee Deleted.")} else {console.log(err)}
+                    repeat();
+                });
+                case "go back":
+                    repeat();
+                    break;
+            }})})})};
 function repeat(){
     inquirer
     .prompt({
@@ -130,62 +224,23 @@ function repeat(){
 }
 
 function byDepartment(){
+    const names = connection.query('SELECT name FROM department')
     inquirer
     .prompt({
         name: "depart",
-        type: "list",
-        message: "which department?",
-        choices: ["Sales", "Engineering", "Legal", "Finance"]
+        type: "input",
+        message: "Enter department id#: ",
+        
     })
     .then((results) =>{
-        switch (results.depart) {
-            case "Sales":
-                var query = 'SELECT * FROM employee JOIN roles ON employee.role_id = roles.id WHERE department_id= 1 ORDER BY employee.id ASC';
-                
-                
+                var query = 'SELECT * FROM employee JOIN roles ON employee.role_id = roles.id WHERE department_id= '+results.depart+' ORDER BY employee.id ASC';
                 connection.query(query, function (error, results){
                  if (error) throw error;
                    console.table(results)
                    repeat();
-                });
-                
-                break;
-            case "Engineering":
-                var query = 'SELECT * FROM employee JOIN roles ON employee.role_id = roles.id WHERE department_id= 2 ORDER BY employee.id ASC';
-                
-                
-                connection.query(query, function (error, results){
-                 if (error) throw error;
-                   console.table(results)
-                   repeat();
-                });
-                
-                break;
-            case "Legal":
-                var query = 'SELECT * FROM employee JOIN roles ON employee.role_id = roles.id WHERE department_id= 3 ORDER BY employee.id ASC';
-                ;
-                
-                connection.query(query, function (error, results){
-                 if (error) throw error;
-                   console.table(results)
-                   repeat();
-                });
-                
-                break;
-             case "Finance":
-                var query = 'SELECT * FROM employee JOIN roles ON employee.role_id = roles.id WHERE department_id= 4 ORDER BY employee.id ASC';
-                
-                
-                connection.query(query, function (error, results){
-                 if (error) throw error;
-                   console.table(results)
-                   repeat();
-                });
-                break;   
+                }); 
         }
-        
-    }) 
-    
+) 
 }
 const updateEmployee = () =>{
     inquirer
