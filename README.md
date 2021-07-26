@@ -11,7 +11,7 @@ A node application that makes use of a MySql database and various npm packages t
 
 ## Installation
 
-npm install to install various dependencies, then use the provided MySql schema and seed files in the db folder to add example data.
+npm install to install various dependencies, then use the provided MySql schema and seed files in the db folder to add example data, and apply your MySql username and password to the connection area (server.js lines 9+10).
 
 ## Usage
 

@@ -1,13 +1,13 @@
 const mysql = require('mysql');
-
+require('dotenv').config()
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 
 const connection = mysql.createConnection({
     host: 'localhost',
     port: 3306,
-    user: 'root',
-    password: 'password',
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
     database: 'employees_db'
 });
 connection.connect((err) => {
